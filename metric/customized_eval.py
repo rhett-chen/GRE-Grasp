@@ -17,7 +17,7 @@ class GraspNetEval:
             cfg.log_string = print
         cfg.log_string("=> Initializing Customized Grasp Eval")
         self.max_width = cfg.config['data']['max_width']
-        self.camera_type = cfg.config['data']['camera']
+        self.camera_type = cfg.config['data']['camera_type']
         self.root = cfg.config['data']['graspnet_root']
         self.dump_dir = cfg.config['data']['grasp_dir']  # where the grasp results are saved
         self.cfg_log = cfg.log_string
