@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn.functional as F
 import torchvision.transforms.functional as TF
@@ -53,16 +54,14 @@ def topk_fps_sample(heatmap, fps_num, topK, thresh):
     fps_idxs = fps_idxs.unsqueeze(-1).repeat(1, 1, 2)  # (batch,topK,2)
     topk_kps_fps = torch.gather(top_fps[:, :, :2], 1, fps_idxs)  # (batch,topK,2), torch.float32, height-width
 
-    return topk_kps_fps, valid_num.mean()  # height-width, y-x, (bs,topk,2)
+    return topk_kps_fps  # height-width, y-x, (bs,topk,2)
 
 
 def post_process_heatmap(heatmap, topK, thresh, fps_num, nms_size):
     batch, _, height, width = heatmap.size()  # height should always equal width
     heatmap[heatmap < thresh] = 0.
     heatmap = _nms(heatmap, kernel=nms_size)
-    topk_kps_fps, topk_num = topk_fps_sample(
-        heatmap, fps_num, topK, thresh
-    )  # (bs,topK,2),height-width,y-x, (bs,topk)
+    topk_kps_fps = topk_fps_sample(heatmap, fps_num, topK, thresh)  # (bs,topK,2),height-width,y-x, (bs,topk)
 
     topk_kps_fps_ = topk_kps_fps.view(-1, 2)  # (batch*topk,2), height-width, out_res scale
     batch_idxs = torch.arange(batch).unsqueeze(-1).repeat(1, topK).view(-1).to(topk_kps_fps)
@@ -71,7 +70,33 @@ def post_process_heatmap(heatmap, topK, thresh, fps_num, nms_size):
            topk_kps_fps_[:, 1] - 32., topk_kps_fps_[:, 0] - 32., topk_kps_fps_[:, 1] + 31., topk_kps_fps_[:, 0] + 31.]
     box = torch.stack(box, dim=1)  # (batch*topk,5), batch_id-x1-y1-x2-y2, x for width
 
-    return box, topk_kps_fps, topk_num
+    return box, topk_kps_fps
+
+
+def gaussian2D(shape, sigma=1.):
+    m, n = [(ss - 1.) / 2. for ss in shape]
+    y, x = np.ogrid[-m:m + 1, -n:n + 1]
+
+    h = np.exp(-(x * x + y * y) / (2 * sigma * sigma))
+    h[h < np.finfo(h.dtype).eps * h.max()] = 0
+    return h
+
+
+def draw_umich_gaussian(heatmap, center, radius, k=1):  # directly on the same heatmap
+    diameter = 2 * radius + 1
+    gaussian = gaussian2D((diameter, diameter), sigma=2.2)  # adjust sigma
+
+    x, y = int(center[0]), int(center[1])  # x for height, y for width, different from center-net
+
+    height, width = heatmap.shape[0:2]
+
+    left, right = min(y, radius), min(width - y, radius + 1)   # switch x-y, x for height, y for width
+    top, bottom = min(x, radius), min(height - x, radius + 1)
+
+    masked_heatmap = heatmap[x - top:x + bottom, y - left:y + right]
+    masked_gaussian = gaussian[radius - top:radius + bottom, radius - left:radius + right]
+    if min(masked_gaussian.shape) > 0 and min(masked_heatmap.shape) > 0:
+        np.maximum(masked_heatmap, masked_gaussian * k, out=masked_heatmap)  # masked_heatmap is part of heatmap
 
 
 def unmold_bbox_mask_split(topk_kps, mask_pred, orig_h=720, orig_w=1280):
@@ -90,6 +115,27 @@ def unmold_bbox_mask_split(topk_kps, mask_pred, orig_h=720, orig_w=1280):
     region_mask = region_mask.squeeze(1).view(bs, topk, 400, 400)  # (bs,topk,400,400)
     region_mask = TF.resize(region_mask, size=[orig_h, orig_w], interpolation=TF.InterpolationMode.NEAREST) # (bs,720,1280)
     return region_mask
+
+
+def numpy_fps(points, n_point):
+    points_num, dim = points.shape
+    if n_point == points_num:
+        return np.arange(n_point)
+    elif n_point > points_num:
+        idxs = np.ones(n_point, dtype=np.int32)
+        idxs[:points_num] = np.arange(points_num)
+        return idxs
+
+    centroid_idx = np.zeros(n_point, dtype=int)
+    distance = np.ones(points_num, dtype=np.float32) * 1e6
+    farthest_idx = 0
+    for i in range(n_point):
+        centroid_idx[i] = farthest_idx
+        dist = np.sum((points - points[farthest_idx]) ** 2, axis=1)
+        mask = dist < distance
+        distance[mask] = dist[mask]
+        farthest_idx = np.argmax(distance)
+    return centroid_idx
 
 
 def mink_sparse_collate_for_aug_sample(coords):

@@ -1,0 +1,37 @@
+grasp_ckpt_path: logs/grasp_ckpt_epoch010.tar
+
+log:
+  log_dir: logs/test_grasp  # may be need change
+  exp_name: epoch010   # must change if you copy the .yaml to run another exp
+
+test:
+  seed: 2008
+  batch_size: 2
+  log_batch_interval: 32
+  num_workers: 0
+  infer: True  # only infer and save grasp
+  eval: True  # only for eval grasp
+
+device:
+  use_gpu: True
+  gpu_id: '0'
+
+data:
+  graspnet_root: /data1/datasets/graspnet
+  graspness_path: /data1/datasets/graspnet/graspness_th0.8
+  camera_type: kinect
+  max_width: 0.1
+  split: test    # different test sets, or directly give a scene number: 0, or list: [0,1,2]
+  voxel_size: 0.005  # for mink sparse conv
+  num_points: 15000
+  topk: 256
+  topk_th: 0.38
+  nms: 2
+  fps_num: 2048
+
+model:
+  gp_num: 1024
+  candidate_num: 5000   # 5000 if aug_sample > 0 else 2048
+  rp_num: 256  # 256 if aug_sample > 0 else 64
+  aug_sample: 16  # perform aug sample if aug_sample > 0
+  region_fps: 16

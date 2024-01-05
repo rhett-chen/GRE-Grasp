@@ -1,0 +1,49 @@
+resume: False
+grasp_ckpt_path: null # null is None in python
+
+log:
+  log_dir: logs/train_grasp  # may be need change
+  exp_name: gre_grasp   # must change if you copy the .yaml to run another exp
+
+
+device:
+  use_gpu: True
+  gpu_id: '0'
+
+debug: False   # whether debug
+train:
+  seed: 2008
+  batch_size: 4
+  max_epoch: 10
+  pin_memory: True
+  num_workers: 2
+  log_batch_interval: 32
+  tensorboard: True
+  pretrain_mask: logs/mask_ckpt_epoch040.tar
+
+optimizer:
+  lr_grasp: 0.001
+  view: 100
+  score: 20
+  width: 10
+  obj: 1
+  ness: 10
+
+data:
+  graspnet_root: /data1/datasets/graspnet
+  graspness_path: /data1/datasets/graspnet/graspness_th0.8
+  camera_type: kinect
+  split: train   # different test sets
+  voxel_size: 0.005  # for mink sparse conv
+  num_points: 15000
+  topk: 256  # direct in image
+  topk_th: 0.38
+  nms: 2  # 2 | 3
+  fps_num: 2048  #  nms=2, then 2048; nms=3, then 256
+
+model:
+  gp_num: 1024
+  candidate_num: 5000  # for aug sample, if only original, then 2048
+  rp_num: 256  # region points num, related to cc_mode
+  aug_sample: 16
+  region_fps: 16  # fps from region points

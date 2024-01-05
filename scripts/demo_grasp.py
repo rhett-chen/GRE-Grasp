@@ -124,7 +124,6 @@ def inference(cfg, model, ret_dict):
     grasps = grasp_pred_decode(end_points)   # (bs,topk,17)
     np.save(os.path.join(cfg.save_path, 'graspable_mask.npy'), end_points['graspable_mask'].cpu().numpy())
     np.save(os.path.join(cfg.save_path, 'grasps.npy'), grasps.cpu().numpy())
-    np.save(os.path.join(cfg.save_path, 'region_points.npy'), end_points['region_points'].cpu().numpy())
     np.save(os.path.join(cfg.save_path, 'cloud.npy'), end_points['cloud'][0].view(-1, 3).cpu().numpy())
     np.save(os.path.join(cfg.save_path, 'cloud_ws.npy'), end_points['cloud_ws'][0].view(-1, 3).cpu().numpy())
     np.save(os.path.join(cfg.save_path, 'rgb.npy'), end_points['rgb'][0].view(-1, 3).cpu().numpy())

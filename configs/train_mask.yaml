@@ -1,0 +1,45 @@
+resume: False
+ckpt_path: null
+
+debug: False   # whether debug
+log:
+  log_dir: logs/train_mask
+  exp_name: mask_th38
+
+device:
+  use_gpu: True
+  gpu_id: '0'
+
+train:
+  seed: 2008
+  batch_size: 6
+  max_epoch: 40
+  pin_memory: True
+  num_workers: 4
+  log_batch_interval: 32
+  tensorboard: True
+
+optimizer:
+  lr_encoder: 0.0002
+  lr_decoder: 0.0002
+  lr_mask: 0.0001
+  weight_decay: 0.01
+  amsgrad: False
+  mse_loss: 10
+  mask_loss: 2
+
+data:
+  graspnet_root: /data1/datasets/graspnet
+  kps_dir: /data1/datasets/graspnet/inner_kps_4   # keypoints dir
+  camera_type: kinect
+  split: train   # different test sets
+  kps_num: 160  # select fixed num of gt centers in each img_ori
+  topk: 128  # select topk kps in heatmap
+  nms: 3   # nms kernel size(diameter)
+  thresh: 0.38   # use thresh to filter grasp points
+  fps: 256  # select fix num of top fps kps in heatmap to apply fps sampling
+
+model:
+  heatmap_loss: mse_loss  # mse_loss | smooth_l1_loss
+  draw_gaussian: 3  # draw gaussian for heatmap mask, if <= 0, do not draw gaussian, else is the gaussian radius
+  gt_knn: 3  # each pre kps will be match to knn gt kps to compute loss
