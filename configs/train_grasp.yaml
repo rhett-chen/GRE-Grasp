@@ -19,7 +19,7 @@ train:
   num_workers: 2
   log_batch_interval: 32
   tensorboard: True
-  pretrain_mask: logs/mask_ckpt_epoch040.tar
+  pretrain_mask: logs/mask_ckpt_epoch040.tar  # *** set the path to the pretrained mask weight ***
 
 optimizer:
   lr_grasp: 0.001
@@ -36,10 +36,10 @@ data:
   split: train   # different test sets
   voxel_size: 0.005  # for mink sparse conv
   num_points: 15000
-  topk: 256  # direct in image
+  topk: 256
   topk_th: 0.38
-  nms: 2  # 2 | 3
-  fps_num: 2048  #  nms=2, then 2048; nms=3, then 256
+  nms: 2
+  fps_num: 2048
 
 model:
   gp_num: 1024

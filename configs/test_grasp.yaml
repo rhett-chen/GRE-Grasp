@@ -1,4 +1,4 @@
-grasp_ckpt_path: logs/grasp_ckpt_epoch010.tar
+grasp_ckpt_path: logs/grasp_ckpt_epoch010.tar  # set the path to the grasp model weight
 
 log:
   log_dir: logs/test_grasp  # may be need change

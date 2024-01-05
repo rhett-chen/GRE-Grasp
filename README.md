@@ -2,10 +2,10 @@
 This is the official implementation of [Grasp Region Exploration for 7-DoF Robotic Grasping in Cluttered Scenes](https://ieeexplore.ieee.org/document/10341757). 2023 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS).
 ## Installation
 ### Requirements
-python-3.6 + cuda-11.0 + torch-1.9.0 + torchvision-0.10.0 + MinkowskiEngine-0.5.4 + graspnetAPI-1.2.10
+python-3.6 + cuda-11.0 + torch-1.9.0 + torchvision-0.10.0 + pytorch3d-0.6.1 + MinkowskiEngine-0.5.4 + graspnetAPI-1.2.10
 ### Installation
 * Please configure the conda environment first.
-* Install [torch/torchvision](https://pytorch.org/), [MinkowskiEngine](https://github.com/NVIDIA/MinkowskiEngine), [graspnetAPI](https://github.com/graspnet/graspnetAPI).
+* Install [torch/torchvision](https://pytorch.org/), [pytorch3d](https://github.com/facebookresearch/pytorch3d), [MinkowskiEngine](https://github.com/NVIDIA/MinkowskiEngine), [graspnetAPI](https://github.com/graspnet/graspnetAPI).
 * Install pointnet2: 
     ```shell
     cd utils_all/pointnet2
@@ -21,22 +21,35 @@ python-3.6 + cuda-11.0 + torch-1.9.0 + torchvision-0.10.0 + MinkowskiEngine-0.5.
 * Simplify grasp labels in graspnet dataset:
     ```shell
     cd gre_grasp/dataset
-    python simplify_dataset.py --dataset_root "path-to-graspnet-root"
+    python simplify_dataset.py --dataset_root /data1/datasets/graspnet
     ```
+* Generate graspness:
+  ```shell
+  python -m gre_grasp.dataset.generate_graspness --dataset_root /data1/datasets/graspnet
+  ```
+* Generate grasp region mask labels:
+  ```shell
+  python -m gre_grasp.dataset.generate_inner_kps --dataset_root /data1/datasets/graspnet
+  ```
 ## Training
-Set the parameters in configs/train_grasp.yaml, and uncomment the train_grasp line in command_grasp.bash. 
+Set the parameters in configs/train_mask.yaml, train the grasp region segmentation module first:
+```shell
+cd command
+bash command_mask.bash
+```
+Set the parameters in configs/train_grasp.yaml, and uncomment the train_grasp line in command_grasp.bash. Train the grasp prediction module:
 ```shell
 cd commands
 bash command_grasp.bash
 ```
 ## Testing
-Set the parameters in configs/test_grasp.yaml, and uncomment the test_grasp line in command_grasp.bash to run evaluation for GraspNet-1Billion data. 
+Set the parameters in configs/test_grasp.yaml, and uncomment the test_grasp line in command_grasp.bash to run evaluation for GraspNet-1Billion data: 
 ```shell
 cd commands
 bash command_grasp.bash
 ```
 ## Demo
-Set the parameters in configs/demo_grasp.yaml, and uncomment the demo_grasp line in command_grasp.bash to run demo for GraspNet-1Billion data.
+Set the parameters in configs/demo_grasp.yaml, and uncomment the demo_grasp line in command_grasp.bash to run demo for GraspNet-1Billion data:
 ```shell
 cd commands
 bash command_grasp.bash
