@@ -34,7 +34,7 @@ python-3.6 + cuda-11.0 + torch-1.9.0 + torchvision-0.10.0 + pytorch3d-0.6.1 + Mi
 ## Training
 Set the parameters in configs/train_mask.yaml, train the grasp region segmentation module first:
 ```shell
-cd command
+cd commands
 bash command_mask.bash
 ```
 Set the parameters in configs/train_grasp.yaml, and uncomment the train_grasp line in command_grasp.bash. Train the grasp prediction module:
